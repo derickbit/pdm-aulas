@@ -2,9 +2,8 @@
 import { AuthContext } from "@/context/AuthProvider";
 import { router } from "expo-router";
 import React, { useContext, useState } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Dialog, Divider, List, Text, useTheme } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Menu() {
   const theme = useTheme();
@@ -20,7 +19,7 @@ export default function Menu() {
   }
 
   return (
-    <SafeAreaView
+    <View
       style={{ ...styles.container, backgroundColor: theme.colors.background }}
     >
       <List.Item
@@ -29,7 +28,7 @@ export default function Menu() {
         left={() => (
           <List.Icon color={theme.colors.primary} icon="smart-card-outline" />
         )}
-        onPress={() => alert("em desenvolvimento")}
+        onPress={() => router.push("/perfil")}
       />
       <Divider />
       <List.Item
@@ -65,7 +64,7 @@ export default function Menu() {
           </Text>
         </Dialog.Content>
       </Dialog>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -73,6 +72,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingLeft: 20,
+    paddingTop: 50,
     alignItems: "center",
   },
   textDialog: {
