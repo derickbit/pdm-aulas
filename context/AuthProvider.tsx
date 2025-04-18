@@ -1,4 +1,4 @@
-import { auth, firestore } from "@/firebase/firebaseInit";
+import { auth, firestore } from "@/firebase/firebaseinit";
 import { Credential } from "@/model/type";
 import { Usuario } from "@/model/Usuario";
 import * as SecureStore from "expo-secure-store";
@@ -8,6 +8,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   UserCredential,
+  sendPasswordResetEmail,
+  deleteUser,
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import React, { createContext, useState } from "react";
@@ -46,6 +48,20 @@ export const AuthProvider = ({ children }: any) => {
     }
   }
 
+  async function recuperaSenha(email: string): Promise<string> {
+    try {
+      const actionCodeSettings = {
+        url: "https://localhost:8081/resetPassword", // Substitua pela URL da sua página personalizada
+        handleCodeInApp: true, // Garante que o código será tratado no app
+      };
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
+      return "Um email para redefinição de senha foi enviado.";
+    } catch (error: any) {
+      console.error("Erro ao recuperar senha", error.code, error.message);
+      return "Erro ao enviar o email de redefinição de senha.";
+    }
+  }
+
   async function signUp(usuario: Usuario): Promise<string> {
     try {
       if (usuario.email && usuario.senha) {
@@ -81,17 +97,17 @@ export const AuthProvider = ({ children }: any) => {
 
   async function signIn(credencial: Credential): Promise<string> {
     try {
-      let userCredential = await signInWithEmailAndPassword(
+      let userCredencial = await signInWithEmailAndPassword(
         auth,
         credencial.email,
         credencial.senha
       );
-      if (!userCredential.user.emailVerified) {
+      if (!userCredencial.user.emailVerified) {
         return "Você precisa verificar seu email para continuar.";
       }
-      setUserAuth(userCredential.user);
+      setUserAuth(userCredencial);
       armazenaCredencialnaCache(credencial);
-      console.log("Atenticou", userCredential.user);
+      console.log("Autenticou", userCredencial);
       return "ok";
     } catch (error: any) {
       console.error("Erro ao autenticar", error.code, error.message);
@@ -107,6 +123,12 @@ export const AuthProvider = ({ children }: any) => {
     } catch (error: any) {
       console.error(error.code, error.message);
       return launchServerMessageErro(error);
+    }
+  }
+
+  async function delAccount(): Promise<void> {
+    if (userAuth?.user) {
+      await deleteUser(userAuth.user);
     }
   }
 
@@ -132,7 +154,15 @@ export const AuthProvider = ({ children }: any) => {
 
   return (
     <AuthContext.Provider
-      value={{ signIn, recuperaCredencialdaCache, userAuth, sair, signUp }}
+      value={{
+        signIn,
+        recuperaCredencialdaCache,
+        userAuth,
+        sair,
+        signUp,
+        recuperaSenha,
+        delAccount,
+      }}
     >
       {children}
     </AuthContext.Provider>

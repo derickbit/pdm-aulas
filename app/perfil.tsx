@@ -29,17 +29,17 @@ const schema = yup
 
 export default function Perfil({ navigation }: any) {
   const theme = useTheme();
-  const { usuerFirebase } = useContext<Usuario>(UserContext);
+  const { userFirebase } = useContext<Usuario>(UserContext);
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<any>({
     defaultValues: {
-      nome: usuerFirebase.nome,
-      email: usuerFirebase.email,
-      curso: usuerFirebase.curso,
-      perfil: usuerFirebase.perfil,
+      nome: userFirebase.nome,
+      email: userFirebase.email,
+      curso: userFirebase.curso,
+      perfil: userFirebase.perfil,
     },
     mode: "onSubmit",
     resolver: yupResolver(schema),
@@ -57,7 +57,7 @@ export default function Perfil({ navigation }: any) {
   async function atualizaPerfil(data: Usuario) {
     setRequisitando(true);
     setAtualizando(true);
-    data.uid = usuerFirebase.uid;
+    data.uid = userFirebase.uid;
     data.urlFoto =
       "https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50"; //TODO: isso irá mudar quando desenvolver o upload de imagens
     const msg = await update(data);
@@ -85,7 +85,7 @@ export default function Perfil({ navigation }: any) {
     setDialogExcluirVisivel(false);
     setRequisitando(true);
     setExcluindo(true);
-    const msg = await del(usuerFirebase.uid);
+    const msg = await del(userFirebase.uid);
     if (msg === "ok") {
       router.replace("/signIn");
     } else {

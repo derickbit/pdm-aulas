@@ -1,15 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { firestore } from "@/firebase/firebaseInit";
+import { firestore } from "@/firebase/firebaseinit";
 import { Usuario } from "@/model/Usuario";
 import { deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
-import { createContext, useContext, useEffect, useState } from "react";
-import { AuthContext } from "./AuthProvider";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { AuthContext, AuthContextType } from "./AuthProvider";
+import { updatePassword } from "firebase/auth";
 
 export const UserContext = createContext({});
 
 export const UserProvider = ({ children }: any) => {
-  const { userAuth, delAccount } = useContext(AuthContext);
-  const [usuerFirebase, setUserFirebase] = useState<Usuario | null>(null);
+  const { userAuth, delAccount } = useContext(AuthContext) as AuthContextType;
+  const [userFirebase, setUserFirebase] = useState<Usuario | null>(null);
 
   useEffect(() => {
     if (userAuth) {
@@ -71,8 +72,21 @@ export const UserProvider = ({ children }: any) => {
     }
   }
 
+  async function changePassword(newPassword: string): Promise<string> {
+    try {
+      if (!userAuth.user) {
+        return "Usuário não autenticado.";
+      }
+      await updatePassword(userAuth.user, newPassword);
+      return "Senha alterada com sucesso!";
+    } catch (e) {
+      console.error("Erro ao alterar senha:", e);
+      return "Erro ao alterar a senha. Certifique-se de que o login é recente.";
+    }
+  }
+
   return (
-    <UserContext.Provider value={{ usuerFirebase, update, del }}>
+    <UserContext.Provider value={{ userFirebase, update, del, changePassword }}>
       {children}
     </UserContext.Provider>
   );
