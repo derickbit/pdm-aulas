@@ -1,45 +1,52 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { AuthContext } from "@/context/AuthProvider";
 import { router } from "expo-router";
 import { useContext, useEffect } from "react";
-import { Image, StyleSheet } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import { useTheme } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
+import LogoTemaDark from "@/components/logo1";
+import * as Animatable from "react-native-animatable";
 
-export default function Preload() {
+export default function PreloadScreen() {
   const theme = useTheme();
-  const { signIn, recuperaCredencialdaCache } = useContext<any>(AuthContext);
+  const { recuperaCredencialdaCache, signIn } = useContext<any>(AuthContext);
 
   useEffect(() => {
+    //ao montar o componente tenta logar com as credenciais da cache
     logar();
   }, []);
 
   async function logar() {
-    const credencialCache = await recuperaCredencialdaCache("credencial");
-    if (credencialCache) {
-      const response = await signIn({
-        email: credencialCache.email,
-        senha: credencialCache.senha,
-      });
-      if (response === "ok") {
-        router.replace("/(tabs)/home");
+    const credencial = await recuperaCredencialdaCache();
+    if (credencial && credencial.email && credencial.senha) {
+      // If credentials exist, attempt to sign in
+      const mensagem = await signIn(credencial);
+      if (mensagem === "ok") {
+        router.replace("/home");
       } else {
         router.replace("/signIn");
       }
     } else {
+      // If no credentials are found, redirect to the sign-in screen
       router.replace("/signIn");
     }
   }
 
   return (
-    <SafeAreaView
+    <View
       style={{ ...styles.container, backgroundColor: theme.colors.background }}
     >
-      <Image
+      <View style={styles.image}>
+        <Animatable.View animation="tada" duration={1500}>
+          <LogoTemaDark />
+        </Animatable.View>
+      </View>
+      {/* <Image
         style={styles.imagem}
-        source={require("../assets/images/logo512.png")}
+        source={require("../assets/images/blackjack2.2.svg")}
         accessibilityLabel="logo do app"
-      />
-    </SafeAreaView>
+      /> */}
+    </View>
   );
 }
 
@@ -49,7 +56,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  imagem: {
+  image: {
+    justifyContent: "center", // Center vertically
+    alignItems: "center", // Center horizontally
     width: 250,
     height: 250,
   },

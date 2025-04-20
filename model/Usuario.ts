@@ -2,14 +2,21 @@ import { Curso } from "./Curso";
 import { Perfil } from "./Perfil";
 
 export class Usuario {
+  public uid: string;
+  public email: string;
+  public nome: string;
+  public urlFoto: string;
+  public curso: Curso;
+  public perfil: Perfil;
+  public senha?: string;
   constructor(
-    public uid: string,
-    public email: string,
-    public nome: string,
-    public urlFoto: string,
-    public curso: Curso,
-    public perfil: Perfil,
-    public senha?: string
+    uid: string,
+    email: string,
+    nome: string,
+    urlFoto: string,
+    curso: Curso,
+    perfil: Perfil,
+    senha?: string
   ) {
     this.uid = uid;
     this.email = email;

@@ -15,6 +15,8 @@ import {
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as yup from "yup";
+import LogoTemaDark from "@/components/logo1";
+import * as Animatable from "react-native-animatable";
 
 const requiredMessage = "Campo obrigatório";
 
@@ -89,10 +91,16 @@ export default function SignIn() {
     >
       <ScrollView>
         <>
-          <Image
+          {/* <Image
             style={styles.image}
-            source={require("../assets/images/logo512.png")}
-          />
+            source={require("../assets/images/blackjack2.2.svg")}
+          /> */}
+          <View style={styles.image}>
+            <Animatable.View animation="zoomIn" duration={1500}>
+              <LogoTemaDark />
+            </Animatable.View>
+          </View>
+
           <Controller
             control={control}
             render={({ field: { onChange, onBlur, value } }) => (
@@ -155,7 +163,7 @@ export default function SignIn() {
               color: theme.colors.tertiary,
             }}
             variant="labelMedium"
-            onPress={() => alert("Ir para tela Recuperar senha")}
+            onPress={() => router.push("./forgotPassword")}
           >
             Esqueceu sua senha?
           </Text>
@@ -199,8 +207,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   image: {
-    width: 200,
-    height: 200,
     alignSelf: "center",
     borderRadius: 200 / 2,
     marginTop: 100,
@@ -225,7 +231,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
   },
-  textCadastro: {},
+  textCadastro: { color: "black" },
   textEsqueceuSenha: {
     alignSelf: "flex-end",
     marginTop: 20,

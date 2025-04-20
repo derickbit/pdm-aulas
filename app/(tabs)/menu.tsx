@@ -28,7 +28,7 @@ export default function Menu() {
         left={() => (
           <List.Icon color={theme.colors.primary} icon="smart-card-outline" />
         )}
-        onPress={() => router.push("/perfil")}
+        onPress={() => router.push("../Perfil")}
       />
       <Divider />
       <List.Item
@@ -40,7 +40,7 @@ export default function Menu() {
             icon="eye-arrow-right-outline"
           />
         )}
-        onPress={() => alert("em desenvolvimento")}
+        onPress={() => router.push("../resetPassword")}
       />
       <Divider />
       <List.Item

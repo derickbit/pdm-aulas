@@ -163,7 +163,7 @@ export default function Perfil({ navigation }: any) {
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
                 style={styles.textinput}
-                disabled
+                // disabled
                 label="Email"
                 placeholder="Digite seu email"
                 mode="outlined"
@@ -189,7 +189,7 @@ export default function Perfil({ navigation }: any) {
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
                 style={styles.textinput}
-                disabled
+                // disabled
                 label="Curso ou Empresa"
                 placeholder="Clique para selecionar outro curso"
                 mode="outlined"
@@ -213,7 +213,7 @@ export default function Perfil({ navigation }: any) {
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
                 style={styles.textinput}
-                disabled
+                // disabled
                 label="Perfil"
                 placeholder="Clique para selecionar outro perfil"
                 mode="outlined"

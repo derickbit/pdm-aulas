@@ -3,13 +3,18 @@ import { firestore } from "@/firebase/firebaseinit";
 import { Usuario } from "@/model/Usuario";
 import { deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { AuthContext, AuthContextType } from "./AuthProvider";
-import { updatePassword } from "firebase/auth";
+import { AuthContext } from "./AuthProvider";
+import {
+  updatePassword,
+  updateEmail,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
 
 export const UserContext = createContext({});
 
 export const UserProvider = ({ children }: any) => {
-  const { userAuth, delAccount } = useContext(AuthContext) as AuthContextType;
+  const { userAuth, delAccount } = useContext(AuthContext);
   const [userFirebase, setUserFirebase] = useState<Usuario | null>(null);
 
   useEffect(() => {
@@ -44,8 +49,19 @@ export const UserProvider = ({ children }: any) => {
     }
   }
 
+  // async function reauthenticateUser(password: string): Promise<void> {
+  //   if (userAuth.user) {
+  //     const credential = EmailAuthProvider.credential(userAuth.user.email!, password);
+  //     await reauthenticateWithCredential(userAuth.user, credential);
+  //   }
+  // }
+
   async function update(usuario: Usuario): Promise<string> {
     try {
+      // if (userAuth.user && userAuth.user.email !== usuario.email) {
+      //   await updateEmail(userAuth.user, usuario.email);
+      // }
+
       await setDoc(doc(firestore, "usuarios", usuario.uid), {
         curso: usuario.curso,
         email: usuario.email,
@@ -86,7 +102,14 @@ export const UserProvider = ({ children }: any) => {
   }
 
   return (
-    <UserContext.Provider value={{ userFirebase, update, del, changePassword }}>
+    <UserContext.Provider
+      value={{
+        userFirebase,
+        update,
+        del,
+        changePassword /*reauthenticateUser*/,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
