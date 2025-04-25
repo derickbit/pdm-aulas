@@ -10,6 +10,7 @@ import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { Button, Dialog, Text, TextInput, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as yup from "yup";
+import * as ImagePicker from "expo-image-picker";
 
 const requiredMessage = "Campo obrigatório";
 
@@ -68,7 +69,7 @@ export default function SignUpScreen() {
       "https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50";
     data.curso = Curso.CSTSI;
     data.perfil = Perfil.Aluno;
-    const msg = await signUp(data);
+    const msg = await signUp(data, urlDevice);
     if (msg === "ok") {
       setMensagem({ tipo: "ok", mensagem: "Cadastro realizado com sucesso!" });
       setDialogVisivel(true);
@@ -81,18 +82,47 @@ export default function SignUpScreen() {
   }
 
   async function buscaNaGaleria() {
-    alert("busca na galeria");
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+    if (!result.canceled) {
+      const path = result.assets[0].uri;
+      setUrlDevice(path);
+    }
   }
 
   async function tiraFoto() {
-    alert("tira foto");
+    await ImagePicker.requestCameraPermissionsAsync();
+    const { status } = await ImagePicker.getCameraPermissionsAsync();
+    if (status !== "granted") {
+      alert("Precisamos de permissão para acessar a câmera");
+      return;
+    }
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: "images",
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+      if (!result.canceled) {
+        const path = result.assets[0].uri;
+        setUrlDevice(path);
+      }
+    } catch (error) {
+      console.error("Erro ao tirar foto:", error);
+      alert("Erro ao tirar foto. Tente novamente.");
+    }
   }
 
   return (
     <SafeAreaView
       style={{ ...styles.container, backgroundColor: theme.colors.background }}
     >
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.scrollview}>
         <>
           <Image
             style={styles.image}
@@ -280,6 +310,9 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     borderRadius: 200 / 2,
     marginTop: 50,
+  },
+  scrollview: {
+    flexGrow: 1,
   },
   textinput: {
     width: 350,

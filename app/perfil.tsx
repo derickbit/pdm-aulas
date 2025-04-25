@@ -36,10 +36,10 @@ export default function Perfil({ navigation }: any) {
     formState: { errors },
   } = useForm<any>({
     defaultValues: {
-      nome: userFirebase.nome,
-      email: userFirebase.email,
-      curso: userFirebase.curso,
-      perfil: userFirebase.perfil,
+      nome: userFirebase?.nome,
+      email: userFirebase?.email,
+      curso: userFirebase?.curso,
+      perfil: userFirebase?.perfil,
     },
     mode: "onSubmit",
     resolver: yupResolver(schema),
