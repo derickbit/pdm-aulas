@@ -108,6 +108,14 @@ export const UserProvider = ({ children }: any) => {
         update,
         del,
         changePassword /*reauthenticateUser*/,
+        getUser,
+        setUserFirebase,
+        userAuth,
+        delAccount,
+        updatePassword,
+        updateEmail,
+        reauthenticateWithCredential,
+        EmailAuthProvider,
       }}
     >
       {children}

@@ -82,15 +82,26 @@ export default function SignUpScreen() {
   }
 
   async function buscaNaGaleria() {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    if (!result.canceled) {
-      const path = result.assets[0].uri;
-      setUrlDevice(path);
+    await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status } = await ImagePicker.getMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      alert("Precisamos de permissão para acessar a galeria");
+      return;
+    }
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: "images",
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+      if (!result.canceled) {
+        const path = result.assets[0].uri;
+        setUrlDevice(path);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar imagem:", error);
+      alert("Erro ao buscar imagem. Tente novamente.");
     }
   }
 

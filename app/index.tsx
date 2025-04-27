@@ -17,10 +17,13 @@ export default function PreloadScreen() {
   }, []);
 
   async function logar() {
-    const credencial = await recuperaCredencialdaCache();
-    if (credencial && credencial.email && credencial.senha) {
-      // If credentials exist, attempt to sign in
-      const mensagem = await signIn(credencial);
+    const credencial = await recuperaCredencialdaCache("credencial");
+    if (credencial) {
+      const mensagem = await signIn({
+        email: credencial.email,
+        senha: credencial.senha,
+      });
+
       if (mensagem === "ok") {
         router.replace("/home");
       } else {

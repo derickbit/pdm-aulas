@@ -8,6 +8,8 @@ import { Button, Dialog, Text, TextInput, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as yup from "yup";
 import { Usuario } from "../model/Usuario";
+import * as ImagePicker from "expo-image-picker";
+import { AuthContext } from "@/context/AuthProvider";
 
 const requiredMessage = "Campo obrigatório";
 
@@ -30,6 +32,10 @@ const schema = yup
 export default function Perfil({ navigation }: any) {
   const theme = useTheme();
   const { userFirebase } = useContext<Usuario>(UserContext);
+  const { sendImageToStorage } = useContext<any>(AuthContext);
+  const [urlDevice, setUrlDevice] = useState<string | undefined>(
+    userFirebase?.urlFoto || ""
+  );
   const {
     control,
     handleSubmit,
@@ -52,14 +58,75 @@ export default function Perfil({ navigation }: any) {
   const [mensagem, setMensagem] = useState({ tipo: "", mensagem: "" });
   const { update, del } = useContext(UserContext);
 
+  async function handleImageUpload(localUri: string) {
+    try {
+      const newUrl = await sendImageToStorage(localUri, userFirebase.uid); // Upload image
+      if (newUrl) {
+        setUrlDevice(newUrl); // Update the state with the new URL
+      } else {
+        alert("Erro ao enviar a imagem. Tente novamente.");
+      }
+    } catch (error) {
+      console.error("Erro ao enviar imagem:", error);
+      alert("Erro ao enviar imagem. Tente novamente.");
+    }
+  }
+
+  async function buscaNaGaleria() {
+    await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status } = await ImagePicker.getMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      alert("Precisamos de permissão para acessar a galeria");
+      return;
+    }
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: "images",
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+      if (!result.canceled) {
+        const path = result.assets[0].uri;
+        await handleImageUpload(path); // Update the state with the selected image
+      }
+    } catch (error) {
+      console.error("Erro ao buscar imagem:", error);
+      alert("Erro ao buscar imagem. Tente novamente.");
+    }
+  }
+
+  async function tiraFoto() {
+    await ImagePicker.requestCameraPermissionsAsync();
+    const { status } = await ImagePicker.getCameraPermissionsAsync();
+    if (status !== "granted") {
+      alert("Precisamos de permissão para acessar a câmera");
+      return;
+    }
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: "images",
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+      if (!result.canceled) {
+        const path = result.assets[0].uri;
+        await handleImageUpload(path); // Update the state with the captured image
+      }
+    } catch (error) {
+      console.error("Erro ao tirar foto:", error);
+      alert("Erro ao tirar foto. Tente novamente.");
+    }
+  }
+
   useEffect(() => {}, []);
 
   async function atualizaPerfil(data: Usuario) {
     setRequisitando(true);
     setAtualizando(true);
     data.uid = userFirebase.uid;
-    data.urlFoto =
-      "https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50"; //TODO: isso irá mudar quando desenvolver o upload de imagens
+    data.urlFoto = urlDevice || userFirebase.urlFoto; // Use the updated URL
     const msg = await update(data);
     if (msg === "ok") {
       setMensagem({
@@ -104,19 +171,18 @@ export default function Perfil({ navigation }: any) {
         <>
           <Image
             style={styles.image}
-            source={require("../assets/images/person.png")}
-            loadingIndicatorSource={require("../assets/images/person.png")}
+            source={
+              urlDevice !== ""
+                ? { uri: urlDevice }
+                : require("../assets/images/person.png")
+            } // Display the selected or default image
           />
           <View style={styles.divButtonsImage}>
             <Button
               style={styles.buttonImage}
               mode="outlined"
               icon="image"
-              onPress={() =>
-                alert(
-                  "Isso será desenvolvido na branch modulo2_upload_imagen))"
-                )
-              }
+              onPress={buscaNaGaleria}
             >
               Galeria
             </Button>
@@ -124,11 +190,7 @@ export default function Perfil({ navigation }: any) {
               style={styles.buttonImage}
               mode="outlined"
               icon="camera"
-              onPress={() =>
-                alert(
-                  "Isso será desenvolvido na branch modulo2_upload_imagen))"
-                )
-              }
+              onPress={tiraFoto}
             >
               Foto
             </Button>

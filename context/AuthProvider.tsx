@@ -9,6 +9,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   UserCredential,
+  sendPasswordResetEmail,
+  deleteUser,
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
@@ -45,6 +47,20 @@ export const AuthProvider = ({ children }: any) => {
     } catch (e) {
       console.error("AuthProvider, recuperaCredencialdaCache: " + e);
       return null;
+    }
+  }
+
+  async function recuperaSenha(email: string): Promise<string> {
+    try {
+      const actionCodeSettings = {
+        url: "https://localhost:8081/resetPassword", // Substitua pela URL da sua página personalizada
+        handleCodeInApp: true, // Garante que o código será tratado no app
+      };
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
+      return "Um email para redefinição de senha foi enviado.";
+    } catch (error: any) {
+      console.error("Erro ao recuperar senha", error.code, error.message);
+      return "Erro ao enviar o email de redefinição de senha.";
     }
   }
 
@@ -91,7 +107,26 @@ export const AuthProvider = ({ children }: any) => {
     }
   }
 
-  //Função utilitária para tratar a imagem e transmitir pro serviço de Storage do Firebase
+  async function signIn(credencial: Credential): Promise<string> {
+    try {
+      let userCredential = await signInWithEmailAndPassword(
+        auth,
+        credencial.email,
+        credencial.senha
+      );
+      if (!userCredential.user.emailVerified) {
+        return "Você precisa verificar seu email para continuar.";
+      }
+      setUserAuth(userCredential);
+      armazenaCredencialnaCache(credencial);
+      console.log("Atenticou", userCredential.user);
+      return "ok";
+    } catch (error: any) {
+      console.error("Erro ao autenticar", error.code, error.message);
+      return launchServerMessageErro(error);
+    }
+  }
+
   async function sendImageToStorage(
     urlDevice: string,
     uid: string
@@ -124,26 +159,6 @@ export const AuthProvider = ({ children }: any) => {
     }
   }
 
-  async function signIn(credencial: Credential): Promise<string> {
-    try {
-      let userCredential = await signInWithEmailAndPassword(
-        auth,
-        credencial.email,
-        credencial.senha
-      );
-      if (!userCredential.user.emailVerified) {
-        return "Você precisa verificar seu email para continuar.";
-      }
-      setUserAuth(userCredential);
-      armazenaCredencialnaCache(credencial);
-      console.log("Atenticou", userCredential.user);
-      return "ok";
-    } catch (error: any) {
-      console.error("Erro ao autenticar", error.code, error.message);
-      return launchServerMessageErro(error);
-    }
-  }
-
   async function sair(): Promise<string> {
     try {
       await SecureStore.deleteItemAsync("credencial");
@@ -152,6 +167,12 @@ export const AuthProvider = ({ children }: any) => {
     } catch (error: any) {
       console.error(error.code, error.message);
       return launchServerMessageErro(error);
+    }
+  }
+
+  async function delAccount(): Promise<void> {
+    if (userAuth?.user) {
+      await deleteUser(userAuth.user);
     }
   }
 
@@ -177,7 +198,16 @@ export const AuthProvider = ({ children }: any) => {
 
   return (
     <AuthContext.Provider
-      value={{ signIn, recuperaCredencialdaCache, userAuth, sair, signUp }}
+      value={{
+        signIn,
+        recuperaCredencialdaCache,
+        userAuth,
+        sair,
+        signUp,
+        recuperaSenha,
+        delAccount,
+        sendImageToStorage,
+      }}
     >
       {children}
     </AuthContext.Provider>
