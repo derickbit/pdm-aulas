@@ -34,6 +34,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="Reports"
+        options={{
+          title: "Reports",
+          tabBarIcon: ({ color }) => (
+            <Icon
+              source="account-group"
+              color={theme.colors.primary}
+              size={20}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="menu"
         options={{
           title: "Menu",
