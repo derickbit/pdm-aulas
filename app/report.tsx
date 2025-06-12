@@ -54,9 +54,9 @@ export default function ReportDetalhe() {
     control,
     handleSubmit,
     formState: { errors },
-    reset, // Obter a função reset do useForm
-  } = useForm<Report>({
-    // defaultValues serão setadas no useEffect abaixo quando parsedReportParam estiver pronto
+    reset,
+  } = useForm<{ assunto: string; texto: string }>({
+    // <-- aqui
     defaultValues: {
       assunto: "",
       texto: "",
@@ -79,24 +79,18 @@ export default function ReportDetalhe() {
 
   // Efeito para popular o formulário e a urlDevice quando parsedReportParam estiver disponível
   useEffect(() => {
-    if (parsedReportParam) {
-      console.log("ReportParam carregado:", parsedReportParam);
-      reset({
-        // Popula os campos do formulário
-        assunto: parsedReportParam.assunto || "",
-        texto: parsedReportParam.texto || "",
-      });
-      // Define a urlDevice com a urlFoto do relatório, ou undefined se não houver
-      // Isso garante que se urlFoto for null/undefined, urlDevice será undefined, não ""
-      setUrlDevice(parsedReportParam.urlFoto ?? undefined);
-    } else {
-      // Se não houver parsedReportParam (ex: criando novo), reseta o formulário e urlDevice
-      reset({ assunto: "", texto: "" });
-      setUrlDevice(undefined);
-    }
-  }, [parsedReportParam, reset]); // Executa quando parsedReportParam ou reset mudam
+    reset({
+      assunto: parsedReportParam?.assunto || "",
+      texto: parsedReportParam?.texto || "",
+    });
+    // Só atualiza urlDevice se ainda não houver uma imagem selecionada (ex: ao abrir o form)
+    setUrlDevice((prev) =>
+      prev === undefined ? parsedReportParam?.urlFoto ?? undefined : prev
+    );
+  }, [parsedReportParam, reset]);
 
   async function salvar(value: Pick<Report, "assunto" | "texto">) {
+    console.log("Função salvar chamada!", value);
     try {
       setRequisitando(true);
       setAtualizando(true);
@@ -114,14 +108,13 @@ export default function ReportDetalhe() {
       }
 
       const reportData: Report = {
-        id: parsedReportParam?.id || null,
+        id: parsedReportParam?.id ?? "", // nunca null, use string vazia se não houver
         uid: userFirebase.uid,
         assunto: value.assunto,
         texto: value.texto,
-        // Salva a urlDevice (que pode ser uma nova URL ou a original).
-        // Se urlDevice for undefined (nenhuma imagem nova ou original), salva uma string vazia.
         urlFoto: urlDevice ?? "",
       };
+      console.log("Salvando report:", reportData);
 
       const msg = await save(reportData);
       if (msg === "ok") {
@@ -152,8 +145,10 @@ export default function ReportDetalhe() {
       const storagePath = `reports/${userFirebase.uid}/${Date.now()}`;
       const newUrl = await sendImageToStorage(localUri, storagePath);
 
+      console.log("URL da imagem enviada:", newUrl); // <-- Adicione este log
+
       if (newUrl) {
-        setUrlDevice(newUrl); // Atualiza urlDevice com a nova URL da imagem enviada
+        setUrlDevice(newUrl);
       } else {
         alert("Erro ao enviar a imagem. Tente novamente.");
       }
@@ -163,8 +158,92 @@ export default function ReportDetalhe() {
     }
   }
 
-  // ... (restante das suas funções: excluirReport, avisarDaExclusaoPermanenteDoRegistro, buscaNaGaleria, tiraFoto) ...
-  // Essas funções não precisam de alteração para este problema específico.
+  async function excluirReport() {
+    setDialogExcluirVisivel(false);
+    setRequisitando(true);
+    setExcluindo(true);
+    try {
+      // Usando parsedReportParam que já está no seu estado
+      if (!parsedReportParam?.id) {
+        setMensagem({
+          tipo: "erro",
+          mensagem: "ID do relatório não encontrado.",
+        });
+        setDialogErroVisivel(true);
+        setRequisitando(false);
+        setExcluindo(false);
+        return;
+      }
+
+      const msg = await del(parsedReportParam.id);
+
+      if (msg === "ok") {
+        setMensagem({
+          tipo: "ok",
+          mensagem: "Relatório excluído com sucesso!",
+        });
+      } else {
+        setMensagem({ tipo: "erro", mensagem: msg });
+      }
+      setDialogErroVisivel(true);
+    } catch (error) {
+      console.error("Erro ao excluir:", error);
+      setMensagem({ tipo: "erro", mensagem: "Erro ao excluir relatório." });
+      setDialogErroVisivel(true);
+    } finally {
+      setRequisitando(false);
+      setExcluindo(false);
+    }
+  }
+
+  function avisarDaExclusaoPermanenteDoRegistro() {
+    setDialogExcluirVisivel(true);
+  }
+
+  async function buscaNaGaleria() {
+    try {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        alert("Precisamos de permissão para acessar a galeria");
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+      if (!result.canceled && result.assets && result.assets[0].uri) {
+        await handleImageUpload(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Erro na galeria:", error);
+      alert("Erro ao acessar a galeria");
+    }
+  }
+
+  async function tiraFoto() {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        alert("Precisamos de permissão para acessar a câmera");
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+      if (!result.canceled && result.assets && result.assets[0].uri) {
+        await handleImageUpload(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Erro na câmera:", error);
+      alert("Erro ao acessar a câmera");
+    }
+  }
 
   return (
     <SafeAreaView
@@ -175,10 +254,8 @@ export default function ReportDetalhe() {
           <Image
             style={styles.image}
             source={
-              // Se urlDevice tiver uma URL válida (não undefined, não null, não string vazia), usa ela.
-              // Caso contrário, usa a imagem placeholder.
               urlDevice && urlDevice.trim() !== ""
-                ? { uri: urlDevice }
+                ? { uri: urlDevice + "?t=" + Date.now() }
                 : require("../assets/images/logo512.png")
             }
           />

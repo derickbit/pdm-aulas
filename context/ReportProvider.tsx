@@ -118,31 +118,28 @@ export const ReportProvider = ({ children }: any) => {
   // Se você precisar que ela busque apenas nos relatórios DO USUÁRIO LOGADO por assunto,
   // você precisará adicionar a condição `where("uid", "==", userFirebase.uid)` aqui também.
   async function getReportsByAssunto(assunto: string): Promise<Report[]> {
-    // Exemplo de como seria se fosse para filtrar por usuário também:
-    // if (!userFirebase?.uid) {
-    //   return [];
-    // }
+    if (!userFirebase?.uid) {
+      return [];
+    }
     try {
       let data: Report[] = [];
       const ref = collection(firestore, "reports");
       const q = query(
         ref,
-        // Se for para filtrar por usuário: where("uid", "==", userFirebase.uid),
+        where("uid", "==", userFirebase.uid), // <-- filtro pelo usuário logado
         orderBy("assunto"),
         startAt(assunto),
         endAt(assunto + "\uf8ff")
       );
       const querySnapshot = await getDocs(q);
       querySnapshot.forEach((doc) => {
-        data.push(
-          new Report(
-            doc.id,
-            doc.data().uid,
-            doc.data().assunto,
-            doc.data().texto,
-            doc.data().urlFoto
-          )
-        );
+        data.push({
+          id: doc.id,
+          uid: doc.data().uid,
+          assunto: doc.data().assunto,
+          texto: doc.data().texto,
+          urlFoto: doc.data().urlFoto,
+        });
       });
       return data;
     } catch (error) {
