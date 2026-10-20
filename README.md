@@ -1,50 +1,69 @@
-# Welcome to your Expo app 👋
+# PDM Aulas
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicativo mobile feito em **React Native com Expo** durante a disciplina de Programação para Dispositivos Móveis (TADS, IFSul). O app tem cadastro e login de usuários, perfil com foto e um módulo de **reports** (relatos com assunto, texto e foto), tudo integrado ao **Firebase**.
 
-## Get started
+## Funcionalidades
 
-1. Install dependencies
+- **Autenticação** com Firebase Auth: cadastro, login, recuperação de senha por e-mail e troca de senha.
+- **Perfil do usuário** com nome, curso (CSTSI ou CSBD), tipo de perfil (Aluno, Professor ou Empresa) e foto enviada ao Firebase Storage.
+- **Reports**: criar, listar, editar e excluir relatos com assunto, texto e foto escolhida na galeria, salvos no Firestore.
+- **Validação de formulários** com react-hook-form e yup, com mensagens de erro em português.
+- **Tratamento dos erros do Firebase** traduzidos para mensagens que o usuário entende.
+- **Navegação por abas** (Home, Reports e Menu) com rotas baseadas em arquivos.
+
+A tela Home é um espaço reservado para o jogo Blackjack 2.0, ainda não integrado a este app. O jogo completo roda no [CardNest](https://card-nest.vercel.app).
+
+## Tecnologias
+
+- React Native 0.76, Expo 52 e Expo Router
+- TypeScript
+- Firebase: Authentication, Firestore e Storage
+- react-hook-form, yup e React Native Paper
+- Context API para o estado global (`AuthProvider`, `UserProvider` e `ReportProvider`)
+
+## Estrutura
+
+```
+app/          # Telas e rotas (Expo Router)
+components/   # Componentes reutilizáveis
+context/      # Providers de autenticação, usuário e reports
+model/        # Classes e enums (Usuario, Report, Curso, Perfil)
+firebase/     # Inicialização do Firebase
+```
+
+## Como rodar
+
+1. Clone o repositório e instale as dependências:
 
    ```bash
+   git clone https://github.com/derickbit/pdm-aulas.git
+   cd pdm-aulas
    npm install
    ```
 
-2. Start the app
+2. Crie um projeto no [Firebase](https://console.firebase.google.com) e ative **Authentication** (e-mail e senha), **Firestore** e **Storage**.
 
-   ```bash
-    npx expo start
+3. Crie o arquivo `firebase/firebaseConfig.ts` com as credenciais do seu app web. Ele está no `.gitignore` e não é versionado:
+
+   ```ts
+   export const firebaseConfig = {
+     apiKey: "...",
+     authDomain: "...",
+     projectId: "...",
+     storageBucket: "...",
+     messagingSenderId: "...",
+     appId: "...",
+   };
    ```
 
-In the output, you'll find options to open the app in a
+4. Inicie o app:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   ```bash
+   npx expo start
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   Abra no Expo Go, no emulador Android ou no navegador.
 
-## Get a fresh project
+## Autor
 
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+**Dérick Bitencourte da Silva** · [GitHub](https://github.com/derickbit) · [LinkedIn](https://www.linkedin.com/in/derick-bitencourte-da-silva/)
